@@ -49,7 +49,7 @@ try {
   }
   const feed = process.env.TV_LINUX_UPDATE_URL;
   await build({
-    targets: Platform.LINUX.createTarget(["dir", "AppImage"], Arch.x64),
+    targets: Platform.LINUX.createTarget(["dir", "AppImage", "deb"], Arch.x64),
     config: {
       appId: "computer.telepath.television", productName: "Television",
       electronVersion: manifest.devDependencies.electron, electronDist,
@@ -64,6 +64,15 @@ try {
         executableName: "television", icon: path.join(packageDir, "assets/icon.png"),
         category: "Utility", desktop: { entry: { StartupWMClass: "computer.telepath.television" } },
       },
+      // No deb-specific options: electron-builder forbids overriding the
+      // desktop entry's Exec ("Please specify executable name as
+      // linux.executableName instead of linux.desktop.Exec"), and the
+      // generated entry is correct as-is — the app selects the ozone
+      // platform in-process when launched directly (src/index.ts), the same
+      // selection television-launcher makes. Verified by building on
+      // Ubuntu 24.04: the default Depends resolve there (the t64 packages
+      // provide the old names) and Recommends already lists
+      // libappindicator3-1 for the tray.
       afterPack: async ({ appOutDir }) => {
         for (const name of ["AppRun", "television-launcher", "install-television"]) {
           copyFileSync(path.join(packageDir, "linux", name), path.join(appOutDir, name));
@@ -92,7 +101,7 @@ try {
   writeFileSync(path.join(archDir, "PKGBUILD"), pkgbuild);
   copyFileSync(path.join(packageDir, "linux/computer.telepath.television.desktop"), path.join(archDir, "computer.telepath.television.desktop"));
   copyFileSync(portable, path.join(archDir, path.basename(portable)));
-  const artifacts = readdirSync(output).filter(name => /\.(AppImage|tar\.gz|yml)$/.test(name));
+  const artifacts = readdirSync(output).filter(name => /\.(AppImage|tar\.gz|yml|deb)$/.test(name));
   writeFileSync(path.join(output, "SHA256SUMS"), artifacts.map(name => `${digest(path.join(output, name))}  ${name}`).join("\n") + "\n");
   writeFileSync(path.join(output, "build-info.json"), JSON.stringify({
     product: "Television", version: manifest.version, platform: "linux", arch: "x64",

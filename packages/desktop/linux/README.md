@@ -58,6 +58,35 @@ forgets that connection and lets you enter another. **File → About Television*
 shows the installed client version. Channels, HTML/Markdown artifacts, embedded
 websites, tabs, themes and settings use the shared implementation.
 
+## Ubuntu (.deb package)
+
+The `ubuntu-deb` branch of the `scks1/television` fork extends the Linux
+build with a Debian package target for Ubuntu desktops (built and inspected
+on Ubuntu 24.04). `npm run package:linux` additionally produces
+`Television-<version>-linux-amd64.deb`, listed in `SHA256SUMS` and
+`build-info.json` alongside the AppImage and portable archive.
+
+Install it with:
+
+```
+sudo apt install ./Television-1.5.4-linux-amd64.deb
+```
+
+The package installs under `/opt/Television`, like the Arch package. Its
+desktop entry launches the app directly; the app selects the session's
+Wayland/X11 (ozone) platform in-process, the same selection
+`television-launcher` makes for the portable archive. (electron-builder
+does not allow overriding the generated entry's `Exec`, so the Arch
+package's launcher wrapper is not replicated here.) The generated
+`postinst` keeps the Chromium sandbox setuid only when unprivileged user
+namespaces are unavailable. The package recommends `libappindicator3-1`,
+which the system tray uses on Ubuntu's GNOME session. Hyprland Hide does
+not apply on GNOME; the Window menu offers Minimize instead.
+
+Acceptance on a real Ubuntu desktop (launch under Wayland and X11, sandbox
+engaged without `--no-sandbox`, tray visible) is still required; the build
+checks here do not establish it.
+
 ## Omarchy and window behavior
 
 The launcher selects native Wayland when `WAYLAND_DISPLAY` is present, otherwise
